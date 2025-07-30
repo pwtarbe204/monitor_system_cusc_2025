@@ -1,0 +1,68 @@
+<!-- templates/home.html -->
+{% extends "base.html" %}
+
+{% block title %} Reports {% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <h1 class="text-title" style="margin-top: 10px;">Export Report</h1>
+    <div class="agents-container">
+        <table>
+            <thead>
+                <tr>
+                    <th class="title">Host</th>
+                    <th></th>
+                    <th></th>
+                    <th>Agent ID</th>
+                    <th>Group ID</th>
+                    <th>Group Name</th>
+                    <th>Location</th>
+                    <th>Download</th>
+                </tr>
+            </thead>
+            <tbody id="stats-body-1">
+            </tbody>
+        </table>
+        <h1 class="noagent" id="noagent"></h1>
+        </div>
+</div>
+<script>
+    function updateStats(data) {
+        const tbody = document.getElementById('stats-body-1');
+        tbody.innerHTML = ''; // Xoá cũ để làm mới
+
+        var total = 0;
+
+        data.forEach((stat, index) => {
+            const row = document.createElement('tr');
+            if (stat.group_id) {
+                total += 1
+                row.innerHTML = `
+            <td class='title'><a class='ab'>${stat.hostname}</a></td>
+            <td></td>
+            <td></td>
+            <td style="color:white;">${stat.agent_id}</td>
+            <td style="color:white;">${stat.group_id}</td>
+            <td style="color:white;">${stat.groupname}</td>
+            <td style="color:white;">${stat.grouplocation}</td>
+            <td style="color:white;"><a href="/export/${stat.agent_id}"><i class="fa fa-download" aria-hidden="true"></i> </a></td>
+            `;
+            tbody.appendChild(row);
+            }
+        });
+        if (total == 0) {
+            document.getElementById("noagent").innerHTML = "No agent";
+        }
+    }
+    function fetchStats() {
+      fetch(`/api/agents`)
+        .then(res => res.json())
+        .then(updateStats)
+        .catch(err => console.error('Lỗi khi lấy dữ liệu:', err));
+    }
+
+    fetchStats(); // Gọi lần đầu
+    setInterval(fetchStats, 5000); // Cập nhật mỗi 10 giây
+
+  </script>
+{% endblock %}

@@ -1,0 +1,513 @@
+<!-- templates/home.html -->
+{% extends "base.html" %}
+
+{% block title %} Checker {% endblock %}
+
+{% block content %}
+<script src="https://cdn.tailwindcss.com"></script>
+
+<div class="main-container">
+    <i class="fa fa-bars fa-2x" aria-hidden="true" onclick="showMenu()"></i>
+    <div class="menus" id="menus">
+        <a onclick="showCheckUrl()"><i class="fa fa-link" aria-hidden="true"></i> URL Checker</a>
+        <a onclick="showCheckLocal()"><i class="fa fa-flag-checkered" aria-hidden="true"></i> Local Checker</a>
+    </div>
+
+    <div id="checkURL" style="display: none;">
+        <h1 class="text-3xl font-bold mb-6 text-right">URL Checker 🌐</h1>
+        <div class="bg-gray-800 p-6 rounded-xl shadow-lg mb-6">
+            <label for="urls" class="block text-lg font-semibold mb-2">Enter URLs (one per line):</label>
+            <textarea id="urls" rows="5" placeholder="http://example.com&#10;http://another.com"
+                class="w-full p-4 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white resize-none"
+                required></textarea>
+            <button id="checkButton"
+                class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow flex items-center gap-2">
+                <span id="checkBtnText">Check</span>
+                <svg id="spinner" class="w-5 h-5 text-white animate-spin hidden" xmlns="http://www.w3.org/2000/svg"
+                    fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+            </button>
+            <p id="check"></p>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-xl shadow-lg mb-6">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="title">URL</th>
+                        <th></th>
+                        <th>Malicious</th>
+                        <th>Suspicious</th>
+                        <th>Harmless</th>
+                        <th>Undetected</th>
+                        <th>Evaluate</th>
+                    </tr>
+                </thead>
+                <tbody id="evaluate-url">
+                    <!-- <tr>
+                        <td class="title">http://www.eicar.org/download/eicar.com</td>
+                        <td></td>
+                        <td>6</td>
+                        <td>1</td>
+                        <td>64</td>
+                        <td>28</td>
+                        <td><i class="safe fa-solid fa-circle-check"></i></td>
+                    </tr> -->
+                </tbody>
+            </table>
+        </div>
+        <div id="btns">
+            <button id="all_agents"
+                class="group-button bg-gray-700 hover:bg-gray-600 text-white font-semibold px-4 py-2 rounded-lg mr-2 mb-2"
+                onclick="fetchAllAgent()">All Agents</button>
+        </div>
+        <div class="agents-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="select-all-1" /></th>
+                        <th class="title">Host</th>
+                        <th></th>
+                        <th>Host IP</th>
+                        <th>Group Name</th>
+                        <th>Location</th>
+                        <th>RRT</th>
+                        <th>Load Time</th>
+                    </tr>
+                </thead>
+                <tbody id="stats-body-1"></tbody>
+            </table>
+            <h1 class="noagent" id="noagent"></h1>
+        </div>
+    </div>
+    <div class="checkLocal" display="none" id="checkLocal">
+        <h1 class="text-3xl font-bold mb-6 text-right">Local Checker 🖥️</h1>
+        <div class="custom-select">
+            <div id="btns_local"></div>
+
+            <select id="ip_choices">
+                <option value="0">Select IP:</option>
+            </select>
+            <button id="check_local"
+                class="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow flex items-center gap-2 ">
+                <span id="check_local_btn_text">Check</span>
+                <svg id="spinder_local" class="w-5 h-5 text-white animate-spin hidden"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+            </button>
+        </div>
+
+        <div class="agents-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="select-all-2" /></th>
+                        <th class="title">Host</th>
+                        <th></th>
+                        <th>Host IP</th>
+                        <th>Group Name</th>
+                        <th>Location</th>
+                        <th>RRT</th>
+                        <th>Đánh Giá</th>
+                    </tr>
+                </thead>
+                <tbody id="stats-body-2"></tbody>
+            </table>
+            <h1 class="noagent" id="noagent"></h1>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('select-all-1').addEventListener('change', function () {
+        const checkboxes = document.querySelectorAll('.agent-check');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+    document.getElementById('select-all-2').addEventListener('change', function () {
+        const checkboxes = document.querySelectorAll('.agent-check-2');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+    function showMenu() {
+        const menus = document.getElementById('menus');
+        if (menus.style.display === 'none' || menus.style.display === '') {
+            menus.style.display = 'block';
+        } else {
+            menus.style.display = 'none';
+        }
+    }
+    function showCheckUrl() {
+        document.getElementById('checkURL').style.display = 'block';
+        document.getElementById('checkLocal').style.display = 'none';
+        document.getElementById('menus').style.display = 'none';
+    }
+    function showCheckLocal() {
+        document.getElementById('checkURL').style.display = 'none';
+        document.getElementById('checkLocal').style.display = 'block';
+        document.getElementById('menus').style.display = 'none';
+    }
+    // Initialize the select
+    function updateOptions(agents) {
+        const ipChoices = document.getElementById("ip_choices");
+        ipChoices.innerHTML = ''; // Clear existing options
+        const optionsConfigs = [];
+
+        const option = document.createElement("option");
+        option.value = -1;
+        option.textContent = "Select IP:";
+        ipChoices.appendChild(option);
+
+        agents.forEach(agent => {
+            if (agent.status === 1) {
+                optionsConfigs.push({ text: agent.hostname, value: agent.ip });
+            }
+        });
+
+        optionsConfigs.forEach(config => {
+            const option = document.createElement("option");
+            option.value = config.value;
+            option.textContent = config.text + " (" + config.value + ")";;
+            ipChoices.appendChild(option);
+        });
+    }
+    //-------------------
+    function updateButtons(groups, btn_id) {
+        const btnsDiv = document.getElementById(btn_id);
+        const buttonConfigs = [];
+        const firstGroup = groups[0].id;
+
+        groups.forEach(group => {
+            buttonConfigs.push({ text: group.group_name, groupID: group.id });
+        });
+
+        fetchStats(firstGroup); // Fetch stats for the first group by default
+
+        buttonConfigs.forEach(config => {
+            const btn = document.createElement("button");
+            btn.className = "group-button bg-gray-700 hover:bg-gray-600 text-white font-semibold px-4 py-2 rounded-lg mr-2 mb-2";
+            btn.innerText = config.text;
+            btn.setAttribute("groupID", config.groupID);
+            btn.addEventListener("click", () => {
+                if (btn.style.backgroundColor === "red") {
+                    btn.style.backgroundColor = "";
+                    const ipChoices = document.getElementById("ip_choices");
+                    ipChoices.innerHTML = ''; // Clear existing options
+                    const optionsConfigs = [];
+
+                    const option = document.createElement("option");
+                    option.value = -1;
+                    option.textContent = "Select IP:";
+                    ipChoices.appendChild(option);
+                    return; // If already selected, do nothing
+                }
+                document.querySelectorAll(".group-button").forEach(b => {
+                    b.style.backgroundColor = ""; // Reset inline color
+                });
+                btn.style.backgroundColor = "red"; // Change color on click
+                //Load host and IP in Options
+                fetchStats(btn.getAttribute("groupID"));
+                fetchOptions(btn.getAttribute("groupID"));
+            });
+            btnsDiv.appendChild(btn);
+        });
+    }
+
+    async function updateStats(data) {
+        const tbody = document.getElementById('stats-body-1');
+        tbody.innerHTML = '';
+
+        data.forEach((stat, index) => {
+            const row = document.createElement('tr');
+            if (stat.group_id && stat.status === 1) {
+                row.innerHTML = `
+                        <td><input type="checkbox" class="agent-check checkbox" value="${stat.ip}" /></td>
+                        <td class='title'><a class='ab'>${stat.hostname}</a></td>
+                        <td></td>
+                        <td>${stat.ip}</td>
+                        <td style="color:white;">${stat.groupname}</td>
+                        <td style="color:white;">${stat.grouplocation}</td>
+                        <td class="rtt" style="color: green;">-</td>
+                        <td class="loadtime" style="color: green;">-</td>
+                    
+                    `;
+                tbody.appendChild(row);
+            }
+        });
+    }
+    //Check url is safe or no
+    async function isSafe(urls_list, agents) {
+        const tbody = document.getElementById('evaluate-url');
+        tbody.innerHTML = '';
+        const urls = [];
+        let hasIssue = false;
+
+        urls_list.forEach(result => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="title">${result.url}</td>
+                <td></td>
+                <td style="color:red;">${result.malicious}</td>
+                <td style="color:red;">${result.suspicious}</td>
+                <td style="color:green;">${result.harmless}</td>
+                <td style="color:green;">${result.undetected}</td>
+            ` ;
+            if (result.malicious > 0 || result.suspicious > 0) {
+                row.innerHTML += '<td><i class="unsafe fa-solid fa-circle-xmark"></i></td>';
+            } else {
+                row.innerHTML += '<td><i class="safe fa-solid fa-circle-check"></i></td>';
+                urls.push(result.url); // Chỉ thêm URL an toàn vào danh sách
+            }
+            tbody.appendChild(row);
+        });
+        if (urls.length === 0) {
+            spinner.classList.add('hidden');
+            checkBtnText.textContent = 'Check';
+            checkButton.disabled = false;
+            alert("Không có URL nào an toàn.");
+        } else {
+            console.log(urls);
+            fetch("/check", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ urls, agents })
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("Network response was not ok: " + res.status);
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.ERROR) {
+                        console.error("Server error:", data.ERROR);
+                        alert(data.ERROR); // Hiển thị lỗi cho người dùng
+                        return;
+                    }
+                    if (!Array.isArray(data)) throw new Error("Invalid data format");
+                    const rows = document.querySelectorAll("#stats-body-1 tr");
+                    data.forEach(res => {
+                        console.log(res);
+                        rows.forEach(row => {
+                            const hostText = row.cells[3].textContent.trim();
+                            spinner.classList.add('hidden');
+                            checkBtnText.textContent = 'Check';
+                            checkButton.disabled = false;
+                            if (hostText === res.host) {
+                                const rttElem = row.querySelector(".rtt");
+                                const loadTimeElem = row.querySelector(".loadtime");
+
+                                if (res.rtt) {
+                                    rttElem.textContent = `${res.rtt} ms`;
+                                    rttElem.style.color = getColorByValue(res.rtt);
+                                } else {
+                                    rttElem.textContent = 'N/A';
+                                    rttElem.style.color = 'gray';
+                                }
+
+                                if (res.load_time) {
+                                    loadTimeElem.textContent = `${res.load_time} ms`;
+                                    loadTimeElem.style.color = getColorByValue(res.load_time);
+                                } else {
+                                    loadTimeElem.textContent = 'N/A';
+                                    loadTimeElem.style.color = 'gray';
+                                }
+
+                                function getColorByValue(value) {
+                                    if (value < 100) return 'limegreen';     // tốt
+                                    if (value < 300) return 'orange';        // trung bình
+                                    return 'red';                            // chậm
+                                }
+                            }
+                        });
+                    });
+                })
+                .catch(err => console.error("Error during check:", err));
+        }
+    }
+
+    // Check Local IP
+    function updateAgentLocal(data, src_ip) {
+        const tbody = document.getElementById('stats-body-2');
+        tbody.innerHTML = '';
+
+        data.forEach((stat, index) => {
+            const row = document.createElement('tr');
+            // 
+            if (stat.group_id && stat.ip !== src_ip && stat.status === 1) {
+                row.innerHTML = `
+                        <td><input type="checkbox" class="agent-check-2 checkbox" value="${stat.ip}" /></td>
+                        <td class='title'><a class='ab'>${stat.hostname}</a></td>
+                        <td></td>
+                        <td>${stat.ip}</td>
+                        <td style="color:white;">${stat.groupname}</td>
+                        <td style="color:white;">${stat.grouplocation}</td>
+                        <td class="rtt"></td>
+                        <td class="danhgia"></td>`
+                tbody.appendChild(row);
+            }
+        });
+    }
+    function fetchOptions(group_id) {
+        fetch(`/api/agents/${group_id}`)
+            .then(res => res.json())
+            .then(updateOptions)
+            .catch(err => console.error('Error fetching agents:', err));
+    }
+    function fetchStats(group_id) {
+        fetch(`/api/agents/${group_id}`)
+            .then(res => res.json())
+            .then(updateStats)
+            .catch(err => console.error('Lỗi khi lấy dữ liệu:', err));
+    }
+    function fetchAllAgent() {
+        fetch(`/api/agents`)
+            .then(res => res.json())
+            .then(updateStats)
+            .catch(err => console.error('Lỗi khi lấy dữ liệu:', err));
+    }
+    function fetchGroups() {
+        return fetch('/api/groups')
+            .then(res => res.json())
+            .then(groups => {
+                updateButtons(groups, "btns");
+                updateButtons(groups, "btns_local");
+            })
+            .catch(err => console.error('Error fetching groups:', err));
+    }
+
+    function getSelectedAgents() {
+        const checkboxes = document.querySelectorAll('.agent-check:checked');
+        return Array.from(checkboxes).map(cb => cb.value);
+    }
+
+    function getSelectedAgentsLocal() {
+        const checkboxes = document.querySelectorAll('.agent-check-2:checked');
+        return Array.from(checkboxes).map(cb => cb.value);
+    }
+
+    const selectElement = document.getElementById("ip_choices");
+
+    selectElement.addEventListener("change", () => {
+        const selectedValue = selectElement.value;
+
+        if (selectedValue !== "-1") {
+            fetch(`/api/agents`)
+                .then(res => res.json())
+                .then(agents => {
+                    updateAgentLocal(agents, selectedValue)
+                })
+                .catch(err => console.error('Lỗi khi lấy dữ liệu:', err));
+            console.log("Bạn đã chọn:", selectedValue);
+        } else {
+            const tbody = document.getElementById('stats-body-2');
+            tbody.innerHTML = '';
+            console.log("Bạn chưa chọn mục hợp lệ.");
+        }
+    });
+
+    document.getElementById("check_local").addEventListener("click", (event) => {
+        spinder_local.classList.remove('hidden');
+        check_local_btn_text.textContent = 'Checking...';
+        check_local.disabled = true;
+
+        event.preventDefault(); // Prevent any default form submission if accidentally wrapped
+
+        const selectedIP = document.getElementById("ip_choices").value.trim();
+        const groupID = document.querySelector(".group-button[style*='red']")?.getAttribute("groupID");
+        const agents = getSelectedAgentsLocal();
+
+        if (!selectedIP || selectedIP === -1 || !groupID || (groupID && (!selectedIP || selectedIP === "-1"))) {
+            spinder_local.classList.add('hidden');
+            check_local_btn_text.textContent = 'Check';
+            check_local.disabled = false;
+            alert("Please select an IP and a group.");
+            return;
+        }
+
+        console.log("Selected IP:", selectedIP);
+        console.log("Selected Group ID:", groupID);
+
+        fetch("/check_local", {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ selectedIP, groupID, agents })
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Network response was not ok: " + res.status);
+                return res.json();
+            })
+            .then(data => {
+                if (!Array.isArray(data)) throw new Error("Invalid data format");
+                const rows = document.querySelectorAll("#stats-body-2 tr");
+                data.forEach(result => {
+                    rows.forEach(row => {
+                        const hostText = row.cells[3].textContent.trim();
+
+                        spinder_local.classList.add('hidden');
+                        check_local_btn_text.textContent = 'Check';
+                        check_local.disabled = false;
+
+                        if (hostText === result.host) {
+                            const rttElem = row.querySelector(".rtt");
+                            const danhgia = row.querySelector(".danhgia");
+                            const res = result.rtt
+                            rttElem.textContent = `${result.rtt} ms`;
+                            if (res < 10) {
+                                rttElem.style.color = 'green'
+                                danhgia.style.color = 'green';
+                                danhgia.textContent = 'Very Good'
+                            } else {
+                                rttElem.style.color = 'red'
+                                danhgia.style.color = 'red';
+                                danhgia.textContent = 'Not Good'
+                            }
+                        }
+                    });
+                });
+            })
+    });
+
+    document.getElementById("checkButton").addEventListener("click", (event) => {
+        spinner.classList.remove('hidden');
+        checkBtnText.textContent = 'Checking...';
+        checkButton.disabled = true;
+
+        event.preventDefault(); // Prevent any default form submission if accidentally wrapped
+
+        const urlsText = document.getElementById("urls").value.trim();
+
+        const agents = getSelectedAgents();
+        const urls = urlsText.split('\n').map(u => u.trim()).filter(u => u.length > 0);
+
+        if (!urls || agents.length === 0) {
+            spinner.classList.add('hidden');
+            checkBtnText.textContent = 'Check';
+            checkButton.disabled = false;
+            alert("Please enter a URL and select at least one agent.");
+            return;
+        }
+
+        fetch("/check_url_is_safe", {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ urls })
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Network response was not ok: " + res.status);
+                return res.json();
+            })
+            .then(data => {
+                if (data.ERROR) {
+                    console.error("Server error: ", data.ERROR);
+                    alert(data.ERROR);
+                    return;
+                }
+                if (!Array.isArray(data)) throw new Error("Invalid data format");
+                isSafe(data, agents);
+
+            })
+            .catch(err => console.error("Error during check:", err));
+    });
+    fetchGroups();
+    showCheckUrl();
+</script>
+{% endblock %}

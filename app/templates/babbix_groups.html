@@ -1,0 +1,75 @@
+<!-- templates/home.html -->
+{% extends "base.html" %}
+
+{% block title %} Groups {% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <h1>Create Classroom</h1>
+    <div class="head">
+        <div class="create-class">
+            <form action="/create_group" method="POST">
+                <input type="text" placeholder="Class name..." name="groupname" required><br>
+                <input type="text" placeholder="Location..." name="location" required>
+                <button type="submit">Create</button>
+            </form>
+        </div>
+    </div>
+    <h1>Classroom List</h1>
+    <div class="agents-container">
+        <table>
+            <thead>
+                <tr>
+                    <th class="title">Group Name</th>
+                    <th></th>
+                    <th></th>
+                    <th>ID</th>
+                    <th>Location</th>
+                    <th>Total Host</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="stats-body-1"></tbody>
+        </table>
+        <h1 class="noagent" id="nogroup"></h1>
+    </div>
+</div>
+<script>
+    function updateStats(data) {
+        const tbody = document.getElementById('stats-body-1');
+        tbody.innerHTML = ''; // Xoá cũ để làm mới
+
+        var total = 0;
+
+        data.forEach((stat, index) => {
+            const row = document.createElement('tr');
+            if (stat.id) {
+                total += 1
+                row.innerHTML = `
+            <td class='title'><a class='ab' href="/groups/add/${stat.id}">${stat.group_name}</a></td>
+            <td></td>
+            <td></td>
+            <td style="color:white;">${stat.id}</td>
+            <td style="color:white;">${stat.location}</td>
+            <td>${stat.total}</td>
+            <td><a href="/groups/remove/${stat.id}"><i class="btn fa-solid fa-trash"></i></a></td>
+            `;
+            tbody.appendChild(row);
+            }
+        });
+        if (total == 0) {
+            document.getElementById("nogroup").innerHTML = "No Group";
+        }
+    }
+
+    function fetchStats() {
+      fetch(`/api/DataGroup`)
+        .then(res => res.json())
+        .then(updateStats)
+        .catch(err => console.error('Lỗi khi lấy dữ liệu:', err));
+    }
+
+    fetchStats(); // Gọi lần đầu
+    setInterval(fetchStats, 5000); // Cập nhật mỗi 10 giây
+  </script>
+{% endblock %}

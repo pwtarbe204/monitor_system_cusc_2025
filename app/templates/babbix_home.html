@@ -1,0 +1,97 @@
+<!-- templates/home.html -->
+{% extends "base.html" %}
+
+{% block title %} Home {% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <div class="content-container">
+        <h1>📝 Live Log Viewer</h1>
+        <div class="content-container" style="background-color: black;">
+            <pre id="log-container">Đang tải...</pre>
+        </div>
+        <h1>Disks</h1>
+        <div class="content-container">
+            <div class="small-content">
+                <div id="myPlot" style="width: 100%; max-width: 800px; margin: auto;"></div>
+            </div>
+        </div>
+        <h1>📝 Live Log Viewer</h1>
+
+        <div class="content-container">
+            <pre id="log-container">Đang tải...</pre>
+        </div>
+    </div>
+
+</div>
+<script>
+    const devices = ["C:\\", "D:\\", "H:\\"];
+    const used = [60.00, 30.00, 0.97];
+    const free = [60.00, 70.00, 14.03];
+
+    const data = [
+        {
+            x: used,
+            y: devices,
+            name: 'Đã dùng',
+            type: 'bar',
+            orientation: 'h',
+            marker: {
+                color: 'rgba(255, 99, 132, 0.8)',
+                line: { width: 1.5, color: 'rgba(255, 99, 132, 1)' }
+            },
+            hoverinfo: 'x+y+name'
+        },
+        {
+            x: free,
+            y: devices,
+            name: 'Còn trống',
+            type: 'bar',
+            orientation: 'h',
+            marker: {
+                color: 'rgba(75, 192, 192, 0.8)',
+                line: { width: 1.5, color: 'rgba(75, 192, 192, 1)' }
+            },
+            hoverinfo: 'x+y+name'
+        }
+    ];
+
+    const layout = {
+        title: {
+            text: '📊 Dung lượng ổ đĩa (GB)',
+            font: { size: 24, family: 'Arial, sans-serif' },
+            x: 0.5
+        },
+        barmode: 'stack',
+        bargap: 0.6,
+        xaxis: {
+            title: { text: 'Dung lượng (GB)', font: { size: 16 } },
+            tickfont: { size: 14 },
+            gridcolor: 'rgba(200,200,200,0.2)'
+        },
+        yaxis: {
+            title: { text: 'Tên ổ đĩa', font: { size: 16 } },
+            tickfont: { size: 14 }
+        },
+        legend: {
+            orientation: "h",
+            x: 0.3,
+            y: -0.2
+        },
+        plot_bgcolor: '#000000', 
+        paper_bgcolor: '#000000',   
+        margin: { l: 40, r: 30, t: 10, b: 10 },
+        height: 300
+    };
+
+    Plotly.newPlot("myPlot", data, layout, { responsive: true });
+
+    async function fetchLogs() {
+        const response = await fetch("/api/logs");
+        const data = await response.json();
+        document.getElementById("log-container").textContent = data.join("");
+    }
+    fetchLogs();
+    setInterval(fetchLogs, 5000);
+</script>
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %} Setting {% endblock %}
+
+{% block content %}
+
+<div class="main-container">
+    <i class="fa fa-bars fa-2x" aria-hidden="true" onclick="showMenu()"></i>
+    <div class="menus" id="menus">
+        <a onclick="showPassowordSettings()"><i class="fa fa-key" aria-hidden="true"></i> Password</a>
+        <a onclick="showEmailSettings()"><i class="fa fa-envelope" aria-hidden="true"></i> Email</a>
+        <a class="nav-link" href="/download/agent.zip"> <i class="fa fa-download" aria-hidden="true"></i> Download Agent</a>
+    </div>
+    <div class="agents-container" style="border-radius: 10px;">
+        <h1 style="text-align: center; font-size: 52px;">Setting</h1>
+        <div id="content">
+            <!-- <div class="choices">
+                <a onclick="showPassowordSettings()">Change Password</a>
+                <a onclick="showEmailSettings()">Email Settings</a>
+                <a class="nav-link" href="/download/agent.zip">
+                    <i class="fa fa-download" aria-hidden="true"></i> Download Agent
+                </a>
+            </div> -->
+            <div class="choice-content">
+                <div id="password" style="display: none;">
+                    <h2 style="margin-top: 25px;">Password Settings</h2>
+                    <form action="/change_password" method="POST">
+                        <input type="password" name="oldPassword" placeholder="Old Password...">
+                        <input type="password" name="newPassword_1" placeholder="New Password...">
+                        <input type="password" name="newPassword_2" placeholder="New Password Again..."> <br>
+                        <button type="submit">Change Password</button>
+                    </form>
+                </div>
+                <div id="email" style="display: none;">
+                    <h2 style="margin-top: 25px;">Email Settings</h2>
+                    <form action="/add_gmail" , method="POST">
+                        <input type="email" name="gmail" placeholder="New Email..." required>
+                        <button type="submit" style="margin-bottom: 25px;">Add Email</button>
+                    </form>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="title">ID</th>
+                                <th></th>
+                                <th>Gmail</th>
+                                <th>Comfirm</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="stats-body-1"></tbody>
+                    </table>
+                </div>
+                {% if flag == 1 %}
+                {% if messages %}
+                <script>
+                    alert("{{ messages }}");
+                </script>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<!-- <script>
+    function changePassword() {
+        const changePassword = `<div class="choice-content">
+                <h2 style="margin-top: 25px;">Change Password</h2>
+                <form action="">
+                    <input type="password" placeholder="Current Password..."> <br>
+                    <input type="password" placeholder="New Password..."> <br>
+                    <input type="password" placeholder="New Password..."> <br>
+                    <button type="submit" style="margin-bottom: 25px;">Change password</button>
+                </form>
+            </div>`;
+        document.getElementById("content").innerHTML = changePassword;
+    }
+    function changeEmail() {
+        const changeEmail = `<div class="choice-content">
+                <h2 style="margin-top: 25px;">Change Email</h2>
+                <h3>Email registered: abc@gmail.com</h3>
+                <form action="">
+                    <input type="gmail" placeholder="New Email..."> <br>
+                    <input type="password" placeholder="Password..."> <br>
+                    <input type="password" placeholder="App Password..."> <br>
+                    <button type="submit" style="margin-bottom: 25px;">Change Email</button>
+                </form>
+            </div>`;
+        document.getElementById("content").innerHTML = changeEmail;
+    }
+</script> -->
+<script>
+    function showMenu() {
+            const menus = document.getElementById('menus');
+            if (menus.style.display === 'none' || menus.style.display === '') {
+                menus.style.display = 'block';
+            } else {
+                menus.style.display = 'none';
+            }
+        }
+    function updateStats(data) {
+        const tbody = document.getElementById('stats-body-1');
+        tbody.innerHTML = ''; // Xoá cũ để làm mới
+
+        var total = 0;
+
+        data.forEach((stat, index) => {
+            const row = document.createElement('tr');
+            if (stat.gmail_id) {
+                total += 1
+                row.innerHTML = `
+            <td class='title'><a class='ab'>${stat.gmail_id}</a></td>
+            <td></td>
+            <td style="color:white;">${stat.gmail}</td>
+            <td>
+                ${stat.status === 0 ? `
+                <form action="/comfirm/${stat.gmail_id}" method="POST">
+                    <input type="text" name="otp" placeholder="OTP..." required>
+                    <button type="submit" style="margin-bottom: 25px;">Confirm</button>
+                </form>
+                ` : `<span style="color:Green;">Đã xác nhận</span>`}
+            </td>
+            <td><a href="/delete_gmail/${stat.gmail_id}"><i class="btn fa-solid fa-trash"></i></a></td>
+            `;
+                tbody.appendChild(row);
+            }
+        });
+    }
+    function fetchStats() {
+        fetch(`/gmails`)
+            .then(res => res.json())
+            .then(updateStats)
+            .catch(err => console.error('Lỗi khi lấy dữ liệu:', err));
+    }
+    fetchStats();
+
+    const msg = {{ msg|tojson }};
+    if (msg != 'no') {
+        alert(msg);
+    }
+    
+    const flag = {{ flag }};
+    
+    function showPassowordSettings() {
+        document.getElementById("email").style.display = "none";
+        document.getElementById("password").style.display = "block";
+        menus.style.display = 'none';
+
+    }
+    function showEmailSettings() {
+        menus.style.display = 'none';
+        document.getElementById("password").style.display = "none";
+        document.getElementById("email").style.display = "block";
+    }
+    if (flag === 0) {
+        showPassowordSettings();
+    } else if (flag === 1) {
+        showEmailSettings();
+    }
+</script>
+{% endblock %}

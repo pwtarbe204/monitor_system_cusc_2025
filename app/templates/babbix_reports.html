@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %} Babbix {% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-color: #000000;
+        }
+
+        .sidebar {
+            height: 100vh;
+            width: 240px;
+            background-color: #2c2f33;
+            color: white;
+            padding: 1rem;
+            position: fixed;
+        }
+
+        .sidebar .nav-link {
+            color: #b0b3b8;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar .nav-link.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 8px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+        }
+
+        .divider {
+            border-top: 1px solid #444;
+            margin: 1rem 0;
+        }
+
+        .total-container {
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        .main-container {
+            padding: 20px 30px;
+            background-color: #000000;
+            color: white;
+            width: 100%;
+        }
+
+        .content-container {
+            margin-top: 20px;
+            padding: 20px 30px;
+            background-color: #1f2937;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .agents-container {
+            margin-top: 20px;
+            padding: 20px 30px;
+            padding-bottom: 10px;
+            background-color: #1f2937;
+            width: 100%;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .group-container {
+            background-color: #091f3f;
+            width: 24%;
+            border-radius: 10px;
+            margin-right: 10px;
+            padding: 10px 10px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            padding-left: 15px;
+            padding-right: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .group-container:hover {
+            transform: scale(0.95);
+        }
+
+        .detail {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn {
+            padding: 3px 5px;
+            color: rgb(233, 27, 27);
+        }
+
+        .btn:hover {
+            color: #902424;
+        }
+
+        h4 {
+            font-weight: bold;
+        }
+
+        a {
+            text-decoration: none;
+            color: white;
+        }
+
+        .container {
+            margin-top: 25px;
+            background-color: rgb(33, 44, 57);
+            border-radius: 10px;
+            padding: 2px 4px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .chart-container {
+            width: 100%;
+            max-width: 600px;
+            /* Độ rộng tối đa của biểu đồ */
+            height: 350px;
+            /* Chiều cao cố định */
+            margin: auto;
+
+        }
+
+        input[type="text"] {
+            width: 90%;
+            padding: 5px;
+            background-color: #000000;
+            border: 2px solid rgb(255, 255, 255);
+            color: white;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
+            background-color: #0d6efd;
+            color: #f1f1f1;
+        }
+
+        .head {
+            display: flex;
+        }
+
+        .noagent {
+            text-align: center;
+            color: #7a7b7d;
+            font-family: sans-serif;
+            margin-top: 10px;
+            font-size: 34px;
+        }
+
+        .page {
+            width: 100%;
+            padding-top: 70px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            text-align: center;
+        }
+
+        .page button {
+            margin-left: 10px;
+        }
+
+        .create-class {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            width: 30%;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .create-class input {
+            border-radius: 5px;
+            border: 2px solid rgb(36, 34, 34);
+            margin-top: 10px;
+        }
+
+        .opacity {
+            opacity: 0.5;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            color: white;
+        }
+
+        .page-number {
+            width: 100%;
+            height: 5vh;
+            text-align: right;
+        }
+
+        .page-number button {
+            border: 0px;
+            border-radius: 5px;
+            font-size: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        button:hover {
+            transform: scale(0.95);
+        }
+
+        h4 {
+            font-weight: bold;
+        }
+
+        p {
+            margin-bottom: 3px;
+        }
+
+        a {
+            text-decoration: none;
+            color: white;
+        }
+
+        .connect {
+            color: #107a30;
+        }
+
+        .disconnect {
+            color: #a10e17;
+        }
+
+        .bold {
+            font-weight: 500;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+
+        .detail button {
+            border-radius: 5px;
+            background-color: red;
+            border: 0px;
+            color: white;
+            color: rgb(225, 225, 225);
+            font-size: 16px;
+        }
+
+        .check_url input {
+            width: 300px;
+        }
+
+        .logout {
+            margin-top: 20vh;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #1f2937;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid #374151;
+            color: #9ca3af;
+        }
+
+        .title {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+            margin: 0;
+            padding: 0;
+        }
+
+        .text-title {
+            border-bottom: 1px solid #374151;
+            padding-bottom: 10px;
+            color: #cccccc;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+        }
+
+        th {
+            color: #9ca3af;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+        }
+
+        td a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .ab {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            margin-right: 0.5rem;
+
+        }
+
+        .status.online {
+            background-color: #10b981;
+            animation: blink 2s infinite;
+            /* xanh lục */
+        }
+
+        .status.offline {
+            background-color: #e01313;
+            /* xanh lục */
+        }
+
+        .good {
+            color: green;
+        }
+
+        .notGood {
+            color: red;
+        }
+
+        .high {
+            color: rgb(254, 84, 17);
+            font-weight: bold;
+        }
+
+        .nomal {
+            color: green;
+            font-weight: bold;
+        }
+
+        .online {
+            color: #107a30;
+            animation: blink 2s infinite;
+        }
+
+        .offline {
+            color: red;
+        }
+
+        .trash {
+            color: red;
+            cursor: pointer;
+        }
+
+        .host {
+            color: #7a7b7d;
+            font-size: 24px;
+            opacity: 0.9;
+            font-weight: 500px;
+        }
+        .hidden {
+            visibility: hidden
+        }
+        .black {
+            width: 100%;
+            height: 100vh;
+            background-image: url('https://i.pinimg.com/736x/83/a8/89/83a8892882e73d9ed7eb132792048326.jpg');
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+    </style>
+
+</head>
+
+<body>
+    {% if id != 0%}
+    <div class="black"></div>
+    <div class="main-container hidden">
+                <h1 style="margin-top: 25px;">📈 Charts</h1>
+                <div class="container">
+                    <div class="chart-container">
+                        <canvas id="myChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="myChart2"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="myChart3"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="myChart4"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="myChart5"></canvas>
+                    </div>
+                </div>
+    </div>
+    {% endif %}
+    <script>
+        let chart, chart_2, chart_3, chart_4;
+        const id = {{ id }};
+
+        function initChart() {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const ctx_2 = document.getElementById('myChart2').getContext('2d');
+            const ctx_3 = document.getElementById('myChart3').getContext('2d');
+            const ctx_4 = document.getElementById('myChart4').getContext('2d');
+            const ctx_5 = document.getElementById('myChart5').getContext('2d');
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [], datasets: [
+                        { label: 'Download (Mbps)', data: [], borderColor: 'green', backgroundColor: 'rgba(0, 255, 0, 0.2)', fill: true },
+                        { label: 'Upload (Mbps)', data: [], borderColor: 'red', backgroundColor: 'rgba(255, 0, 0, 0.2)', fill: true }
+                    ]
+                },
+                options: {
+                    responsive: true, scales: { x: { title: { display: true, text: 'Time' } }, y: { title: { display: true, text: 'Mbps' } } }, title: {
+                        display: true,
+                        text: "Upload/Download Speed"
+                    }
+                }
+            });
+
+            chart_2 = new Chart(ctx_2, {
+                type: 'bar',
+                data: {
+                    labels: [], datasets: [
+                        { label: 'Packet In', data: [], backgroundColor: 'rgba(0, 0, 255, 0.6)' },
+                        { label: 'Packet Out', data: [], backgroundColor: 'rgba(255, 165, 0, 0.6)' }
+                    ]
+                },
+                options: {
+                    responsive: true, scales: { x: { title: { display: true, text: 'Time' } }, y: { beginAtZero: true } },
+                    title: {
+                        display: true,
+                        text: "Packet IN/OUT"
+                    }
+                }
+            });
+
+            chart_3 = new Chart(ctx_3, {
+                type: 'line',
+                data: {
+                    labels: [], datasets: [
+                        {
+                            label: 'RAM Usage (%)', data: [], borderColor: 'green', backgroundColor: 'rgba(0, 255, 0, 0.2)', fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, scales: { x: { title: { display: true, text: 'Time' } }, y: { title: { display: true, text: 'Percent(%)' } } },
+                    title: {
+                        display: true,
+                        text: "RAM usage"
+                    }
+                }
+            });
+
+            chart_4 = new Chart(ctx_4, {
+                type: 'line',
+                data: {
+                    labels: [], datasets: [
+                        {
+                            label: 'CPU Usage (%)', data: [], borderColor: 'blue', backgroundColor: 'rgba(0, 0, 255, 0.1)', fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, scales: {
+                        x: { title: { display: true, text: 'Time' } }, y: {
+                            title: { display: true, text: 'Percentage (%)' }, min: 0, max: 100, ticks: {
+                                stepSize: 10, // Chia nhỏ mỗi 10%
+                                callback: function (value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: "CPU usage"
+                    }
+                }
+            });
+            var barColors = ["#b91d47", "#00aba9"];
+            chart_5 = new Chart(ctx_5, {
+                type: "doughnut",
+                data: {
+                    labels: ["Used(%): ", "Free(%): "],
+                    datasets: [{
+                        backgroundColor: barColors,
+                        data: []
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: 10
+                    },
+                    title: {
+                        display: true,
+                        text: "Disk usage"
+                    }
+                }
+            });
+        }
+
+        async function updateChart() {
+            try {
+                const res = await fetch('/api/chart-data/' + id);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+
+                const sliceStart = Math.max(data.time.length - 10);
+
+                const labels = data.time.slice(sliceStart).map(ts => {
+                const d = new Date(ts);
+                const h = String(d.getUTCHours()).padStart(2, '0');
+                const m = String(d.getUTCMinutes()).padStart(2, '0');
+                const s = String(d.getUTCSeconds()).padStart(2, '0');
+                return `${h}:${m}:${s}`;
+            });
+
+            const labels2 = data.timestamp_2.slice(sliceStart).map(ts => {
+                const d = new Date(ts);
+                const h = String(d.getUTCHours()).padStart(2, '0');
+                const m = String(d.getUTCMinutes()).padStart(2, '0');
+                const s = String(d.getUTCSeconds()).padStart(2, '0');
+                return `${h}:${m}:${s}`;
+            });
+
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = data.download.slice(sliceStart);
+                chart.data.datasets[1].data = data.upload.slice(sliceStart);
+                chart.update();
+
+                chart_2.data.labels = labels;
+                chart_2.data.datasets[0].data = data.packet_recv.slice(sliceStart);
+                chart_2.data.datasets[1].data = data.packet_sent.slice(sliceStart);
+                chart_2.update();
+
+                chart_3.data.labels = labels2;
+                chart_3.data.datasets[0].data = data.ram.slice(10);
+                chart_3.update();
+
+                chart_4.data.labels = labels2;
+                chart_4.data.datasets[0].data = data.cpu.slice(10);
+                chart_4.update();
+
+                chart_5.data.datasets[0].data = [data.disk[data.disk.length - 1], 100 - data.disk[data.disk.length - 1]];
+                chart_5.update();
+
+                exportPDFAndRedirect();
+
+            } catch (err) {
+                console.error('Error updating chart:', err);
+            }
+        }
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        async function exportPDFAndRedirect() {
+            await delay(1500);
+            await exportPDF(); // Chờ hàm tạo PDF xong
+            setTimeout(() => {
+                window.location.href = "/reports";
+            }, 100);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            updateChart();
+            setInterval(updateChart, 5000);
+        });
+
+        async function exportPDF() {
+            const res = await fetch('/api/agent/' + id);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const today = new Date();
+            const dateStr = today.toLocaleString();
+
+            doc.setFontSize(32);
+            doc.text(`[${data.hostname}]-Agent`, 105, 20, { align: "center" });
+
+            doc.setFontSize(20);
+            space = 35
+            gap = 8
+            doc.text(`1.Information`, 14, space);
+            doc.setFontSize(12);
+
+            doc.text(`    AgentID: ${data.id}`, 14, space += gap);
+            doc.text(`    Hostname: ${data.hostname}`, 14, space += gap);
+            doc.text(`    IP: ${data.ip}`, 14, space += gap);
+            doc.text(`    OS: ${data.os}`, 14, space += gap);
+            doc.text(`    Date created: ${dateStr}`, 14, space += gap);
+
+            const res2 = await fetch('/api/chart-data/' + id);
+            if (!res2.ok) throw new Error(`HTTP ${res2.status}`);
+            const dt = res2.json();
+
+            doc.setFontSize(20);
+            doc.text(`2.Charts`, 14, space += gap);
+            doc.setFontSize(12);
+
+            let y = space;
+
+            const chartIds = ['myChart', 'myChart2', 'myChart3', 'myChart4', 'myChart5'];
+
+            for (let i = 0; i < chartIds.length; i++) {
+                const canvas = document.getElementById(chartIds[i]);
+                const imgData = canvas.toDataURL('image/png');
+
+                doc.addImage(imgData, 'PNG', 20, y, 180, 80);
+                y += 90;
+
+                if (i === 1 || i === 3) {
+                    doc.addPage();
+                    y = 5;
+                }
+            }
+            addFooter(doc);
+            doc.save("agent_charts.pdf");
+        }
+        // Hàm thêm footer vào trang hiện tại
+        function addFooter(pdf) {
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            pdf.setFontSize(100);
+            pdf.setTextColor(150);
+            pdf.text('© 2025 THN.', pdf.internal.pageSize.getWidth() / 2, pageHeight - 10, { align: 'center' });
+        }
+    </script>
+    </div>
+</body>
+
+</html>

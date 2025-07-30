@@ -1,0 +1,255 @@
+<!-- templates/home.html -->
+
+{% extends "base.html" %}
+
+{% block title %} Dashboard {% endblock %}
+
+{% block content %}
+{% if id != 0%}
+<div class="main-container">
+    <i class="fa fa-bars fa-2x" aria-hidden="true" style="margin-right: 20px; display: none; margin-bottom: 20px;"
+        id="icon"></i>
+    <!-- <div class="group-container" style="width: 100%;">
+                <h2 class="text-2xl font-bold text-gray mb-4">RAM Usage</h2>
+                <div class="ram-container">
+                    <div class="ram-used" id="usedBar">6.5 GB</div>
+                    <div class="ram-free" id="freeBar">9.5 GB</div>
+                </div>
+                <div class="ram-info" id="ramInfo">
+                    Tổng RAM: 16 GB<br>
+                    Đã dùng: 6.5 GB<br>
+                    Còn trống: 9.5 GB
+                </div>
+            </div> -->
+    <div class="group-container" style="width: 100%;">
+        <h2 class="text-2xl font-bold text-gray mb-4">Chart Summary</h2>
+        <div class="header-chart">
+            <div></div>
+            <button class="btn" onclick="exportPDF()">Export <i class="fa fa-download" aria-hidden="true"></i></button>
+            </button>
+        </div>
+        <div class="container">
+            <div class="chart-container">
+                <canvas id="myChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="myChart2"></canvas>
+            </div>
+        </div>
+        <div class="container">
+            <div class="chart-container">
+                <canvas id="myChart3"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="myChart4"></canvas>
+            </div>
+        </div>
+        <div class="container">
+            <div class="chart-container">
+                <canvas id="myChart5"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endif %}
+<script>
+    function ram() {
+        const total = 16;  // GB
+        const used = 6.5;  // GB
+        const free = total - used;
+
+        const usedPercent = (used / total) * 100;
+        const freePercent = 100 - usedPercent;
+
+        document.getElementById("usedBar").style.width = usedPercent + "%";
+        document.getElementById("freeBar").style.width = freePercent + "%";
+    }
+
+
+    let chart, chart_2, chart_3, chart_4;
+
+    function initChart() {
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const ctx_2 = document.getElementById('myChart2').getContext('2d');
+        const ctx_3 = document.getElementById('myChart3').getContext('2d');
+        const ctx_4 = document.getElementById('myChart4').getContext('2d');
+        const ctx_5 = document.getElementById('myChart5').getContext('2d');
+
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], datasets: [
+                    { label: 'Download (Mbps)', data: [], borderColor: 'green', backgroundColor: 'rgba(0, 255, 0, 0.2)', fill: true },
+                    { label: 'Upload (Mbps)', data: [], borderColor: 'red', backgroundColor: 'rgba(255, 0, 0, 0.2)', fill: true }
+                ]
+            },
+            options: {
+                responsive: true, scales: { x: { title: { display: true, text: 'Time' } }, y: { title: { display: true, text: 'Mbps' } } }, title: {
+                    display: true,
+                    text: "Upload/Download Speed"
+                }
+            }
+        });
+
+        chart_2 = new Chart(ctx_2, {
+            type: 'bar',
+            data: {
+                labels: [], datasets: [
+                    { label: 'Packet In', data: [], backgroundColor: 'rgba(0, 0, 255, 0.6)' },
+                    { label: 'Packet Out', data: [], backgroundColor: 'rgba(255, 165, 0, 0.6)' }
+                ]
+            },
+            options: {
+                responsive: true, scales: { x: { title: { display: true, text: 'Time' } }, y: { beginAtZero: true } },
+                title: {
+                    display: true,
+                    text: "Packet IN/OUT"
+                }
+            }
+        });
+
+        chart_3 = new Chart(ctx_3, {
+            type: 'line',
+            data: {
+                labels: [], datasets: [
+                    {
+                        label: 'RAM Usage (%)', data: [], borderColor: 'green', backgroundColor: 'rgba(0, 255, 0, 0.2)', fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true, scales: { x: { title: { display: true, text: 'Time' } }, y: { title: { display: true, text: 'Percent(%)' } } },
+                title: {
+                    display: true,
+                    text: "RAM usage"
+                }
+            }
+        });
+
+        chart_4 = new Chart(ctx_4, {
+            type: 'line',
+            data: {
+                labels: [], datasets: [
+                    {
+                        label: 'CPU Usage (%)', data: [], borderColor: 'blue', backgroundColor: 'rgba(0, 0, 255, 0.1)', fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true, scales: {
+                    x: { title: { display: true, text: 'Time' } }, y: {
+                        title: { display: true, text: 'Percentage (%)' }, min: 0, max: 100, ticks: {
+                            stepSize: 10, // Chia nhỏ mỗi 10%
+                            callback: function (value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: "CPU usage"
+                }
+            }
+        });
+        var barColors = ["#b91d47", "#00aba9"];
+        chart_5 = new Chart(ctx_5, {
+            type: "doughnut",
+            data: {
+                labels: ["Used(%): ", "Free(%): "],
+                datasets: [{
+                    backgroundColor: barColors,
+                    data: []
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: 10
+                },
+                title: {
+                    display: true,
+                    text: "Disk usage"
+                }
+            }
+        });
+    }
+
+    async function updateChart() {
+        try {
+            const id = {{ id }};
+        const res = await fetch('/api/chart-data/' + id);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        const sliceStart = Math.max(data.time.length - 5);
+
+        const labels = data.time.slice(sliceStart).map(ts => {
+            const d = new Date(ts);
+            const h = String(d.getHours() - 7).padStart(2, '0');
+            const m = String(d.getMinutes()).padStart(2, '0');
+            const s = String(d.getSeconds()).padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        });
+
+        chart.data.labels = labels;
+        chart.data.datasets[0].data = data.download.slice(sliceStart);
+        chart.data.datasets[1].data = data.upload.slice(sliceStart);
+        chart.update();
+
+        chart_2.data.labels = labels;
+        chart_2.data.datasets[0].data = data.packet_recv.slice(sliceStart);
+        chart_2.data.datasets[1].data = data.packet_sent.slice(sliceStart);
+        chart_2.update();
+
+        chart_3.data.labels = labels;
+        chart_3.data.datasets[0].data = data.ram.slice(sliceStart);
+        chart_3.update();
+
+        chart_4.data.labels = labels;
+        chart_4.data.datasets[0].data = data.cpu.slice(sliceStart);
+        chart_4.update();
+
+        chart_5.data.datasets[0].data = [data.disk[data.disk.length - 1], 100 - data.disk[data.disk.length - 1]];
+        chart_5.update();
+
+    } catch (err) {
+        console.error('Error updating chart:', err);
+    }
+}
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initChart();
+        updateChart();
+        setInterval(updateChart, 5000);
+    });
+    let currentLogType = "api";
+    async function fetchLogs() {
+        const response = await fetch(`/api/logs/${currentLogType}`);
+        const data = await response.json();
+
+        // Xử lý từng dòng log
+        const html = data.map(line => {
+            if (line.toLowerCase().includes("fail")) {
+                return `<span style="color: red;">${line}</span>`;
+            }
+            else if (line.toLowerCase().includes("success")) {
+                return `<span style="color: green;">${line}</span>`;
+            }
+            return `<span>${line}</span>`;
+        }).join("");
+        document.getElementById("log-container").innerHTML = html;
+    }
+    document.querySelectorAll("button[log_type]").forEach(button => {
+        button.addEventListener("click", () => {
+            currentLogType = button.getAttribute("log_type");
+            fetchLogs();  // gọi lại với log type mới
+        });
+    });
+    fetchLogs();
+    setInterval(fetchLogs, 5000);
+    ram();
+</script>
+{% endblock %}

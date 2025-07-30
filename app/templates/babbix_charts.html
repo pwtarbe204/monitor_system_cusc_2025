@@ -1,0 +1,529 @@
+<!-- templates/home.html -->
+{% extends "base.html" %}
+
+{% block title %} Chart {% endblock %}
+
+{% block content %}
+<script src="https://cdn.tailwindcss.com"></script>
+<div class="main-container">
+    <i class="fa fa-bars fa-2x" aria-hidden="true" onclick="showMenu()"></i>
+    <div class="menus" id="menus">
+        <a onclick="showSystemMetrics()"><i class="fa fa-desktop" aria-hidden="true"></i> System</a>
+        <a onclick="showChart()"> <i class="fa fa-line-chart" aria-hidden="true"></i> Chart</a>
+        <a onclick="showPorts()"> <i class="fa fa-server" aria-hidden="true"></i></i> Ports</a>
+    </div>
+    <!----System metrics-->
+    <div class="group-container" id="system">
+
+        <h2 class="text-2xl font-bold text-gray mb-4">System Metrics Summary</h2>
+
+        <div class="header-chart" style="margin-bottom: 20px;">
+            <div></div>
+            <button class="btn" id="btn-csv">Export CSV<i class="fa fa-download" aria-hidden="true"></i></button>
+        </div>
+
+        <table id="metrics-table" class="table-auto w-full border-collapse shadow-lg rounded-lg overflow-hidden mb-6">
+            <thead>
+                <tr class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white uppercase text-sm">
+                    <th class="px-6 py-3 border-r border-indigo-400">Metric</th>
+                    <th class="px-6 py-3">Value</th>
+                    <th class="px-6 py-3">Usage %</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-800 text-sm bg-white divide-y divide-gray-200">
+                <tr class="hover:bg-indigo-50 transition duration-200 ease-in-out">
+                    <td class="px-6 py-3 font-medium text-black">CPU Usage</td>
+                    <td class="px-6 py-3 font-semibold text-blue-600" id="cpu-val">Loading...</td>
+                    <td class="px-6 py-3">
+                        <div class="w-full h-3 bg-green-200 rounded-full overflow-hidden">
+                            <div id="cpu_usage" class="h-full bg-red-500"></div>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="hover:bg-green-50 transition duration-200 ease-in-out">
+                    <td class="px-6 py-3 font-medium text-black">RAM Usage</td>
+                    <td class="px-6 py-3 font-semibold text-green-600" id="ram-val">Loading...</td>
+                    <td class="px-6 py-3">
+                        <div class="w-full h-3 bg-green-200 rounded-full overflow-hidden">
+                            <div id="ram_usage" class="h-full bg-red-500"></div>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="hover:bg-yellow-50 transition duration-200 ease-in-out">
+                    <td class="px-6 py-3 font-medium text-black">Disk Usage</td>
+                    <td class="px-6 py-3 font-semibold text-yellow-600" id="disk-val">Loading...</td>
+                    <td class="px-6 py-3">
+                        <div class="w-full h-3 bg-green-200 rounded-full overflow-hidden">
+                            <div id="disk_usage" class="h-full bg-red-500"></div>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="hover:bg-blue-50 transition duration-200 ease-in-out">
+                    <td class="px-6 py-3 font-medium text-black">Download Speed</td>
+                    <td class="px-6 py-3 font-semibold text-indigo-600" id="download-val">Loading...</td>
+                    <td class="px-6 py-3 font-semibold text-indigo-600" id="download-usage">Loading...</td>
+                </tr>
+                <tr class="hover:bg-blue-50 transition duration-200 ease-in-out">
+                    <td class="px-6 py-3 font-medium text-black">Upload Speed</td>
+                    <td class="px-6 py-3 font-semibold text-indigo-600" id="upload-val">Loading...</td>
+                    <td class="px-6 py-3 font-semibold text-indigo-600" id="upload-usage">Loading...</td>
+                </tr>
+                <tr class="hover:bg-pink-50 transition duration-200 ease-in-out">
+                    <td class="px-6 py-3 font-medium text-black">Packet In</td>
+                    <td class="px-6 py-3 font-semibold text-pink-600" id="packet-in-val">Loading...</td>
+                    <td class="px-6 py-3 font-semibold text-pink-600" id="packet-in-usage">Loading...</td>
+                </tr>
+                <tr class="hover:bg-pink-50 transition duration-200 ease-in-out">
+                    <td class="px-6 py-3 font-medium text-black">Packet Out</td>
+                    <td class="px-6 py-3 font-semibold text-pink-600" id="packet-out-val">Loading...</td>
+                    <td class="px-6 py-3 font-semibold text-pink-600" id="packet-out-usage">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="group-container" id="ports">
+        <h2 class="text-white text-xl font-semibold mb-4">Ports</h2>
+        <div class="overflow-x-auto rounded-xl shadow-lg">
+            <table class="min-w-full text-sm text-left text-gray-300 bg-gray-800 rounded-xl overflow-hidden">
+                <thead class="text-xs uppercase bg-gray-700 text-gray-300">
+                    <tr>
+                        <th scope="col" class="px-6 py-4">Port</th>
+                        <th scope="col" class="px-6 py-4">Status</th>
+                        <th scope="col" class="px-6 py-4">Protocols</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700">
+                    {% if port_info %}
+                    {% for port_proto, status in port_info.items() %}
+                    <tr class="hover:bg-gray-700 transition-all">
+                        {% set port, proto = port_proto.split('/') %}
+                        <td class="px-6 py-4 font-medium text-white">{{ port }}</td>
+                        <td class="px-6 py-4 text-green-400 font-semibold">
+                            {% if status == 'open' %}
+                            <span class="text-success fw-bold">Open</span>
+                            {% else %}
+                            <span class="text-danger fw-bold">Closed</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">{{ proto }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Chart Sumary -->
+    <div class="group-container" id="chart" style="width: 100%;">
+        <h2 class="text-2xl font-bold text-gray mb-4">Chart Summary</h2>
+        <div class="header-chart">
+            <div></div>
+            <button class="btn" onclick="exportPDF()">Export PDF<i class="fa fa-download"
+                    aria-hidden="true"></i></button>
+        </div>
+        <div class="container">
+            <div class="chart-container">
+                <canvas id="myChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="myChart2"></canvas>
+            </div>
+        </div>
+        <div class="container">
+            <div class="chart-container">
+                <canvas id="myChart3"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="myChart4"></canvas>
+            </div>
+        </div>
+        <div class="container">
+            <div class="chart-container">
+                <canvas id="myChart5"></canvas>
+            </div>
+        </div>
+    </div>
+    <script>
+
+        let chart, chart_2, chart_3, chart_4, chart_5;
+        const id = {{ id }};
+        showSystemMetrics();
+        function showMenu() {
+            const menus = document.getElementById('menus');
+            if (menus.style.display === 'none' || menus.style.display === '') {
+                menus.style.display = 'block';
+            } else {
+                menus.style.display = 'none';
+            }
+        }
+
+        function showSystemMetrics() {
+            menus.style.display = 'none';
+            document.getElementById('system').style.display = 'block';
+            document.getElementById('chart').style.display = 'None';
+            document.getElementById('ports').style.display = 'None';
+        }
+        function showChart() {
+            menus.style.display = 'none';
+            document.getElementById('chart').style.display = 'block';
+            document.getElementById('system').style.display = 'None';
+            document.getElementById('ports').style.display = 'None';
+        }
+        function showPorts() {
+            menus.style.display = 'none';
+            document.getElementById('system').style.display = 'None';
+            document.getElementById('chart').style.display = 'None';
+            document.getElementById('ports').style.display = 'block';
+        }
+
+        function ram(total, used) {
+            const free = total - used;
+
+            const usedPercent = (used / total) * 100;
+            const freePercent = 100 - usedPercent;
+
+            document.getElementById("usedBar").style.width = usedPercent + "%";
+            document.getElementById("freeBar").style.width = freePercent + "%";
+
+            const ramTotal = Math.round((total / (1024 ** 3)));
+            const ramUsed = Math.round((used / (1024 ** 3)));
+
+            document.getElementById("ramInfo").innerHTML = "RAM TOTAL: " + ramTotal + "GB" + "<br>" + "RAM USED: " + ramUsed + "GB" + "<br>" + "RAM FREE: " + (ramTotal - ramUsed) + "GB";
+        }
+
+        function disk(total, used) {
+            const free = total - used;
+
+            const usedPercent = (used / total) * 100;
+            const freePercent = 100 - usedPercent;
+
+            document.getElementById("diskTotal").style.width = usedPercent + "%";
+            document.getElementById("diskFree").style.width = freePercent + "%";
+
+
+            const diskTotal = Math.round((total / (1024 ** 3)));
+            const diskFree = Math.round((used / (1024 ** 3)));
+
+            document.getElementById("diskInfo").innerHTML = "DISK TOTAL: " + diskTotal + "GB" + "<br>" + "DISK USED: " + diskFree + "GB" + "<br>" + "DISK FREE: " + (diskTotal - diskFree) + "GB";
+
+
+
+        }
+
+        //<td class="px-6 py-3">
+        //     <div class="w-full h-3 bg-green-200 rounded-full overflow-hidden">
+        //         <div class="h-full bg-red-500" style="width: 45%;"></div>
+        //     </div>
+        // </td>
+
+        function initChart() {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const ctx_2 = document.getElementById('myChart2').getContext('2d');
+            const ctx_3 = document.getElementById('myChart3').getContext('2d');
+            const ctx_4 = document.getElementById('myChart4').getContext('2d');
+            const ctx_5 = document.getElementById('myChart5').getContext('2d');
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [], datasets: [
+                        { label: 'Download (Mbps)', data: [], borderColor: 'green', backgroundColor: 'rgba(0, 255, 0, 0.2)', fill: true },
+                        { label: 'Upload (Mbps)', data: [], borderColor: 'red', backgroundColor: 'rgba(255, 0, 0, 0.2)', fill: true }
+                    ]
+                },
+                options: { responsive: true, scales: { x: { title: { display: true, text: 'Time' } }, y: { title: { display: true, text: 'Mbps' } } } }
+            });
+
+            chart_2 = new Chart(ctx_2, {
+                type: 'bar',
+                data: {
+                    labels: [], datasets: [
+                        { label: 'Packet In', data: [], backgroundColor: 'rgba(0, 0, 255, 0.6)' },
+                        { label: 'Packet Out', data: [], backgroundColor: 'rgba(255, 165, 0, 0.6)' }
+                    ]
+                },
+                options: { responsive: true, scales: { x: { title: { display: true, text: 'Time' } }, y: { beginAtZero: true } } }
+            });
+
+
+            chart_3 = new Chart(ctx_3, {
+                type: 'line',
+                data: {
+                    labels: [], datasets: [
+                        { label: 'RAM Usage', data: [], borderColor: 'green', backgroundColor: 'rgba(0, 255, 0, 0.2)', fill: true }
+
+                    ]
+                },
+                options: { responsive: true, scales: { x: { title: { display: true, text: 'Time' } }, y: { title: { display: true, text: 'Percentage (%)' } } } }
+            });
+
+
+            chart_4 = new Chart(ctx_4, {
+                type: 'line',
+                data: {
+                    labels: [], datasets: [
+                        {
+                            label: 'CPU Usage (%)', data: [], borderColor: 'blue', backgroundColor: 'rgba(0, 0, 255, 0.1)', fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, scales: {
+                        x: { title: { display: true, text: 'Time' } }, y: {
+                            title: { display: true, text: 'Percentage (%)' }, min: 0, max: 100, ticks: {
+                                stepSize: 10, // Chia nhỏ mỗi 10%
+                                callback: function (value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            var barColors = ["#b91d47", "#00aba9"];
+            chart_5 = new Chart(ctx_5, {
+                type: "doughnut",
+                data: {
+                    labels: ["Used(%): ", "Free(%): "],
+                    datasets: [{
+                        backgroundColor: barColors,
+                        data: []
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: 10
+                    },
+                    title: {
+                        display: true,
+                        text: "Disk usage"
+                    }
+                }
+            });
+        }
+
+        async function updateChart() {
+            try {
+
+                const res = await fetch('/api/chart-data/' + id);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+
+                if (data.cpu && data.cpu.length > 0) {
+                    document.getElementById('cpu-val').textContent = data.cpu.at(-1) + ' %';
+                    document.getElementById("cpu_usage").style.width = (data.cpu.at(-1)) + '%';
+
+                    document.getElementById('ram-val').textContent = data.ram.at(-1) + ' %';
+                    document.getElementById("ram_usage").style.width = (data.ram.at(-1)) + '%';
+
+                    document.getElementById('disk-val').textContent = data.disk.at(-1) + ' %';
+                    document.getElementById("disk_usage").style.width = (data.disk.at(-1)) + '%';
+                    document.getElementById('download-val').textContent = data.download.at(-1) + ' Mbps';
+                    document.getElementById('upload-val').textContent = data.upload.at(-1) + ' Mbps';
+                    document.getElementById('packet-in-val').textContent = data.packet_recv.at(-1);
+                    document.getElementById('packet-out-val').textContent = data.packet_sent.at(-1);
+                }
+
+                const sliceStart = Math.max(data.time.length - 10);
+
+                const labels = data.time.slice(sliceStart).map(ts => {
+                    const d = new Date(ts);
+                    const h = String(d.getUTCHours()).padStart(2, '0');
+                    const m = String(d.getUTCMinutes()).padStart(2, '0');
+                    const s = String(d.getUTCSeconds()).padStart(2, '0');
+                    return `${h}:${m}:${s}`;
+                });
+
+                const labels2 = data.timestamp_2.slice(sliceStart).map(ts => {
+                    const d = new Date(ts);
+                    const h = String(d.getUTCHours()).padStart(2, '0');
+                    const m = String(d.getUTCMinutes()).padStart(2, '0');
+                    const s = String(d.getUTCSeconds()).padStart(2, '0');
+                    return `${h}:${m}:${s}`;
+                });
+
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = data.download.slice(sliceStart);
+                chart.data.datasets[1].data = data.upload.slice(sliceStart);
+                chart.update();
+
+                chart_2.data.labels = labels;
+                chart_2.data.datasets[0].data = data.packet_recv.slice(sliceStart);
+                chart_2.data.datasets[1].data = data.packet_sent.slice(sliceStart);
+                chart_2.update();
+
+                chart_3.data.labels = labels2;
+                chart_3.data.datasets[0].data = data.ram.slice(sliceStart);
+                chart_3.update();
+
+                chart_4.data.labels = labels2;
+                chart_4.data.datasets[0].data = data.cpu.slice(sliceStart);
+                chart_4.update();
+
+                chart_5.data.datasets[0].data = [data.disk[data.disk.length - 1], 100 - data.disk[data.disk.length - 1]];
+                chart_5.update();
+
+                console.log(data.ram_total.at(-1));
+                ram(data.ram_total.at(-1), data.ram_used.at(-1));
+                disk(data.disk_total.at(-1), data.disk_used.at(-1));
+            } catch (err) {
+                console.error('Error updating chart:', err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            updateChart();
+            setInterval(updateChart, 5000);
+        });
+        async function exportPDF() {
+            const res = await fetch('/api/agent/' + id);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const today = new Date();
+            const dateStr = today.toLocaleString();
+
+            doc.setFontSize(32);
+            doc.text(`[${data.hostname}]-Agent`, 105, 20, { align: "center" });
+
+            doc.setFontSize(20);
+            space = 35
+            gap = 8
+            doc.text(`1.Information`, 14, space);
+            doc.setFontSize(12);
+
+            doc.text(`    AgentID: ${data.id}`, 14, space += gap);
+            doc.text(`    Hostname: ${data.hostname}`, 14, space += gap);
+            doc.text(`    IP: ${data.ip}`, 14, space += gap);
+            doc.text(`    OS: ${data.os}`, 14, space += gap);
+            doc.text(`    Classroom: ${data.groupname}`, 14, space += gap);
+            doc.text(`    Location: ${data.grouplocation}`, 14, space += gap);
+            doc.text(`    Date created: ${dateStr}`, 14, space += gap);
+
+            const res2 = await fetch('/api/chart-data/' + id);
+            if (!res2.ok) throw new Error(`HTTP ${res2.status}`);
+            const dt = res2.json();
+
+            doc.setFontSize(20);
+            doc.text(`2.Charts`, 14, space += gap);
+            doc.setFontSize(12);
+
+            let y = space;
+
+            const chartIds = ['myChart', 'myChart2', 'myChart3', 'myChart4', 'myChart5'];
+
+            for (let i = 0; i < chartIds.length; i++) {
+                const canvas = document.getElementById(chartIds[i]);
+                const imgData = canvas.toDataURL('image/png');
+
+                doc.addImage(imgData, 'PNG', 20, y, 180, 80);
+                y += 90;
+
+                if (i === 1 || i === 3) {
+                    doc.addPage();
+                    y = 5;
+                }
+            }
+
+
+
+            doc.addPage();
+            // Tiêu đề "System Metrics Summary" — tô đậm, to, dễ nhìn
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(18);
+            doc.setTextColor(31, 41, 55); // text-gray-800
+            doc.text("System Metrics Summary", 10, 15);
+
+            // Kích thước bảng
+            const rowHeight = 10;
+            const col1X = 10;
+            const col2X = 100;
+            const colWidth = 90;
+            let tableY = 25;
+
+            // Header (giả lập gradient với màu gần giống Tailwind)
+            doc.setDrawColor(108, 92, 231); // Indigo border
+            doc.setFillColor(102, 126, 234); // Màu gần giống từ-indigo-500
+            doc.rect(col1X, tableY, colWidth, rowHeight, 'FD');
+            doc.rect(col2X, tableY, colWidth, rowHeight, 'FD');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont(undefined, 'bold');
+            doc.text("Metric", col1X + 2, tableY + 7);
+            doc.text("Value", col2X + 2, tableY + 7);
+            tableY += rowHeight;
+
+            // Danh sách metrics và màu tương ứng
+            const metrics = [
+                { label: 'CPU Usage', id: 'cpu-val', bg: [237, 242, 255], text: [37, 99, 235] },      // blue-600, indigo-50
+                { label: 'RAM Usage', id: 'ram-val', bg: [240, 253, 244], text: [22, 163, 74] },       // green-600, green-50
+                { label: 'Disk Usage', id: 'disk-val', bg: [254, 252, 232], text: [202, 138, 4] },     // yellow-600, yellow-50
+                { label: 'Download Speed', id: 'download-val', bg: [239, 246, 255], text: [79, 70, 229] }, // indigo-600, blue-50
+                { label: 'Upload Speed', id: 'upload-val', bg: [239, 246, 255], text: [79, 70, 229] }, // giống dòng trên
+                { label: 'Packet In', id: 'packet-in-val', bg: [253, 242, 248], text: [219, 39, 119] }, // pink-600, pink-50
+                { label: 'Packet Out', id: 'packet-out-val', bg: [253, 242, 248], text: [219, 39, 119] }
+            ];
+
+            doc.setFont(undefined, 'normal');
+
+            metrics.forEach(metric => {
+                const value = document.getElementById(metric.id)?.textContent.trim() || 'N/A';
+
+                // Nền hàng
+                doc.setFillColor(...metric.bg); // set nền dòng
+                doc.rect(col1X, tableY, colWidth, rowHeight, 'F');
+                doc.rect(col2X, tableY, colWidth, rowHeight, 'F');
+
+                // Nội dung cột
+                doc.setTextColor(17, 24, 39); // text-gray-800 cho cột Metric
+                doc.text(metric.label, col1X + 2, tableY + 7);
+
+                doc.setTextColor(...metric.text); // màu chữ tương ứng từng metric
+                doc.setFont(undefined, 'bold');
+                doc.text(value, col2X + 2, tableY + 7);
+                doc.setFont(undefined, 'normal');
+
+                tableY += rowHeight;
+            });
+
+            addFooter(doc);
+            doc.save(`${data.hostname}` + `_${data.group_name}_${data.group_location}_` + 'chart.pdf');
+
+        }
+        // Hàm thêm footer vào trang hiện tại
+        function addFooter(pdf) {
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            pdf.setFontSize(100);
+            pdf.setTextColor(150);
+            pdf.text('© 2025 THN.', pdf.internal.pageSize.getWidth() / 2, pageHeight - 10, { align: 'center' });
+        }
+        document.getElementById('btn-csv').addEventListener('click', function () {
+            let rows = Array.from(document.querySelectorAll('#metrics-table tbody tr'));
+            let csv = 'Metric,Value\n';
+
+            rows.forEach(row => {
+                let cells = row.querySelectorAll('td');
+                let metric = cells[0].innerText.trim();
+                let value = cells[1].innerText.trim();
+                csv += `"${metric}","${value}"\n`;
+            });
+
+
+            let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            let url = URL.createObjectURL(blob);
+            let link = document.createElement('a');
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'system_metrics.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    </script>
+    {% endblock %}

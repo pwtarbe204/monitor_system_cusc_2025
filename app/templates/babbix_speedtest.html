@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+{% block title %} Speedtest {% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #0d1021;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #fff;
+    }
+
+    .speedtest-container {
+        margin-top: 40px;
+        width: 100%;
+        background-color: #1a1c2c;
+        border-radius: 15px;
+        padding: 30px 40px;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+        align-self: center;
+        text-align: center;
+    }
+
+    .speed-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+
+    .speed-item {
+        text-align: center;
+        flex: 1;
+    }
+
+    .speed-item h2 {
+        font-size: 14px;
+        color: #aaa;
+    }
+
+    .speed-item p {
+        font-size: 24px;
+        margin: 10px 0;
+        color: #00ffcc;
+    }
+
+    .upload-speed {
+        color: #c678ff;
+    }
+
+    .ping {
+        font-size: 20px;
+        color: #f0c674;
+    }
+
+    .server-info {
+        font-size: 14px;
+        color: #ccc;
+        margin-top: 10px;
+    }
+
+
+    #serverSelect {
+        width: 50%;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .spinner {
+        display: none;
+        margin: 20px auto;
+        border: 5px solid #444;
+        border-top: 5px solid #00bcd4;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .go-button {
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        border: 2px solid #1ed1ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        color: white;
+        margin: 0 auto;
+        cursor: pointer;
+        background-color: transparent;
+        transition: 0.3s;
+    }
+
+    .go-button:hover {
+        background-color: rgba(30, 209, 255, 0.1);
+    }
+</style>
+
+<div class="main-container">
+    <h1 style="margin-top: 25px;">Speedtest</h1>
+    <div class="speedtest-container">
+        <div style="margin-bottom: 20px;">
+            <button class="go-button" id="checkButton">GO</button>
+            <div class="spinner" id="spinner"></div>
+        </div>
+
+        <div class="speed-row">
+            <div class="speed-item">
+                <h2>DOWNLOAD Mbps</h2>
+                <p id="download-speed">--</p>
+            </div>
+            <div class="speed-item">
+                <h2>UPLOAD Mbps</h2>
+                <p id="upload-speed" class="upload-speed">--</p>
+            </div>
+            <div class="speed-item">
+                <h2>Ping ms</h2>
+                <p class="ping" id="ping-value">--</p>
+            </div>
+        </div>
+        <div class="server-info" id="server-info">Server: ...</div>
+    </div>
+    <div class="agents-container">
+        <table>
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all-1" /></th>
+                    <th class="title">Host</th>
+                    <th></th>
+                    <th>Host IP</th>
+                    <th>Group Name</th>
+                    <th>Location</th>
+                </tr>
+            </thead>
+            <tbody id="stats-body-1"></tbody>
+        </table>
+        <h1 class="noagent" id="noagent"></h1>
+    </div>
+</div>
+<script>
+    const spinner = document.getElementById('spinner');
+    const downloadEl = document.getElementById('download-speed');
+    const uploadEl = document.getElementById('upload-speed');
+    const pingEl = document.getElementById('ping-value');
+    const testBtn = document.getElementById('checkButton');
+    const serverInfoEl = document.getElementById('server-info');
+    const select = document.getElementById('serverSelect');
+
+    async function speedtest(url) {
+        // try {
+        //     const response = await fetch(`http://${url}:5001/get_speedtest/${serverId}`);
+        //     const data = await response.json();
+        //     downloadEl.textContent = data.download + ' Mbps';
+        //     uploadEl.textContent = data.upload + ' Mbps';
+        //     pingEl.textContent = data.ping + ' ms';
+        // } catch (error) {
+        //     console.error(error);
+        //     alert("Không thể kết nối đến server.");
+        //     downloadEl.textContent = uploadEl.textContent = pingEl.textContent = 'Lỗi';
+        // }
+        try {
+            //const response = await fetch(`http://${url}:5001/get_speedtest/${serverId}`);
+            const response = await fetch(`http://${url}:5001/get_speedtest`);
+            const data = await response.json();
+            return {
+                agent: url,
+                download: data.download,
+                upload: data.upload,
+                ping: data.ping,
+                server: data.server
+              
+            };
+        } catch (error) {
+            console.error(`Agent ${url} failed:`, error);
+            return {
+                agent: url,
+                download: 'Error',
+                upload: 'Error',
+                ping: 'Error'
+            };
+        } finally {
+            spinner.style.display = 'none';
+            testBtn.disabled = false;
+        }
+    }
+
+    testBtn.addEventListener('click', async () => {
+        spinner.style.display = 'block';
+        testBtn.disabled = true;
+        downloadEl.textContent = uploadEl.textContent = pingEl.textContent = '...';
+
+        const agents = getSelectedAgents();
+        console.log("Selected Agents:", agents);
+
+        if (agents.length === 0) {
+            speedTestServer();
+        } else {
+            const promises = agents.map(agent => speedtest(agent));
+            const results = await Promise.all(promises);
+
+            let finalResults = {};
+            results.forEach(item => {
+                finalResults[item.agent] = {
+                    download: item.download,
+                    upload: item.upload,
+                    ping: item.ping,
+                    server: item.server
+                };
+            });
+
+            let download = 0;
+            let upload = 0;
+            let ping = 0;
+
+            const length = Object.keys(finalResults).length;
+
+            for (const agent in finalResults) {
+                const result = finalResults[agent];
+                console.log(`Agent: ${agent}`);
+                download += parseFloat(result.download) || 0;
+                upload += parseFloat(result.upload) || 0;
+                ping += parseFloat(result.ping) || 0;
+            }
+            console.log(`Total Download: ${(download / length).toFixed(2)} Mbps`);
+            console.log(`Total Upload: ${(upload / length).toFixed(2)} Mbps`);
+            console.log(`Total Ping: ${(ping / length).toFixed(2)} ms`);
+
+            downloadEl.textContent = (download / length).toFixed(2) + ' Mbps';
+            uploadEl.textContent = (upload / length).toFixed(2) + ' Mbps';
+            pingEl.textContent = (ping / length).toFixed(2) + ' ms';
+            serverInfoEl.textContent = `Server: ${serverName}`;
+
+            console.log("Tất cả kết quả:", finalResults);
+
+            spinner.style.display = 'none';
+            testBtn.disabled = false;
+        }
+    });
+
+    // async function loadServers() {
+    //     try {
+    //         const res = await fetch('/speedtest/get_server');
+    //         const servers = await res.json();
+    //         select.innerHTML = '';
+    //         servers.forEach(server => {
+    //             const option = document.createElement('option');
+    //             option.value = server.id;
+    //             option.textContent = `${server.sponsor} (${server.name})`;
+    //             select.appendChild(option);
+    //         });
+    //     } catch (err) {
+    //         console.error("Lỗi khi tải server:", err);
+    //         select.innerHTML = '<option disabled>Không thể tải danh sách máy chủ</option>';
+    //     }
+    // }
+    function updateAgents(data) {
+        const tbody = document.getElementById('stats-body-1');
+        tbody.innerHTML = '';
+
+        data.forEach((stat, index) => {
+            const row = document.createElement('tr');
+            // 
+            if (stat.group_id && stat.status === 1) {
+                row.innerHTML = `
+                        <td><input type="checkbox" class="agent-check checkbox" value="${stat.ip}" /></td>
+                        <td class='title'><a class='ab'>${stat.hostname}</a></td>
+                        <td></td>
+                        <td>${stat.ip}</td>
+                        <td style="color:white;">${stat.groupname}</td>
+                        <td style="color:white;">${stat.grouplocation}</td>`
+                tbody.appendChild(row);
+            }
+        });
+    }
+    function fetchAllAgent() {
+        fetch(`/api/agents`)
+            .then(res => res.json())
+            .then(updateAgents)
+            .catch(err => console.error('Lỗi khi lấy dữ liệu:', err));
+    }
+    function getSelectedAgents() {
+        const checkboxes = document.querySelectorAll('.agent-check:checked');
+        return Array.from(checkboxes).map(cb => cb.value);
+    }
+    fetchAllAgent();
+    //loadServers();
+</script>
+{% endblock %}

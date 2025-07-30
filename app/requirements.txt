@@ -1,0 +1,11 @@
+flask
+pyodbc
+flask_cors
+dotenv
+bcrypt
+ping3
+pytz
+asyncio
+aiohttp
+requests
+gunicorn

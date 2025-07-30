@@ -1,0 +1,169 @@
+<!-- templates/home.html -->
+{% extends "base.html" %}
+
+{% block title %} Home {% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <h1 class="text-title" style="margin-top: 10px;">Add agent</h1>
+    <div class="agents-container">
+        <table>
+            <thead>
+                <tr>
+                    <th class="title">Host</th>
+                    <th></th>
+                    <th></th>
+                    <th>IP</th>
+                    <th>Status</th>
+                    <th>CPU</th>
+                    <th>RAM</th>
+                    <th>Disk</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="stats-body-1">
+            </tbody>
+        </table>
+        <h1 class="noagent" id="noagent"></h1>
+        </div>
+        
+        
+        <!-- {% for agent in agents %}
+        {% if agent[7] == 0%}
+        <a href="">
+            <div class="group-container">
+                <div class="detail">
+                    <h4>Name: {{ agent[1] }}</h4>
+                    <a href="/groups/{{ id }}/{{ agent[0] }}"><button>+Add</button></a>
+                </div>
+                <p>Hostname: {{ agent[2] }}</p>
+                <p>IP: {{ agent[3] }}</p>
+                <p>OS: {{ agent[4] }}</p>
+                <div class="detail">
+                    <p></p>
+                    {% if agent[5] == 1 %}
+                    <a href="" class="bold">Status: Active <i class="fa-solid fa-circle-dot connect"></i></a>
+                    {% else %}
+                    <a href="" class="bold">Status: Disconnect <i class="fa-solid fa-circle-dot disconnect"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+        {% endif %}
+        {% endfor %} -->
+    
+    <h1 class="text-title" style="margin-top: 25px;">{{ groupname }} - {{grouplocation}} </h1>
+    <p id="hosts" class="host"></p>
+    <div class="agents-container">
+        <table>
+            <thead>
+                <tr>
+                    <th class="title">Host</th>
+                    <th></th>
+                    <th></th>
+                    <th>IP</th>
+                    <th>Status</th>
+                    <th>CPU</th>
+                    <th>RAM</th>
+                    <th>Disk</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="stats-body-2">
+            </tbody>
+        </table>
+         <h1 class="noagent" id="nohost"></h1>
+    </div>
+</div>
+<script>
+    const id = {{ id }};
+    function updateStats(data) {
+        const tbody = document.getElementById('stats-body-1');
+        tbody.innerHTML = ''; // Xoá cũ để làm mới
+
+        var total = 0;
+
+        data.forEach((stat, index) => {
+            const row = document.createElement('tr');
+            if (!stat.group_id) {
+                total += 1
+                row.innerHTML = `
+            <td class='title'><a class='ab'>${stat.hostname}</a></td>
+            <td></td>
+            <td></td>
+            <td style="color:white;">${stat.ip}</td>
+            ${stat.status === 1 ? '<td class="online">Online <i class="fas fa-dot-circle"></i></td>' : '<td style="color:red">Offline</td>'}
+            <td><i class="fa fa-eye-slash" aria-hidden="true"></i></td>
+            <td><i class="fa fa-eye-slash" aria-hidden="true"></i></td>
+            <td><i class="fa fa-eye-slash" aria-hidden="true"></i></td>
+            <td><i class="fa fa-eye-slash" aria-hidden="true"></i></td>
+            <td><a href="/groups/${id}/${stat.agent_id}"><i class="fa fa-plus-circle" aria-hidden="true"></i></a></i></td>
+            `;
+            tbody.appendChild(row);
+            }
+        });
+        if (total == 0) {
+            document.getElementById("noagent").innerHTML = "No agent";
+        }
+    }
+    function updateStats2(data) {
+        const tbody = document.getElementById('stats-body-2');
+        tbody.innerHTML = ''; // Xoá cũ để làm mới
+
+        const len = data.length;
+        var total = 0;
+
+        data.forEach((stat, index) => {
+            const row = document.createElement('tr');
+            
+            if (stat.group_id == id) {
+                total += 1
+                row.innerHTML = `
+            <td class='title'><a href="/chart/${stat.agent_id}" class='ab'>${stat.hostname}</a></td>
+            <td></td>
+            <td></td>
+            <td style="color:white;">${stat.ip}</td>
+            ${stat.status === 1 ? '<td class="online">Online <i class="fas fa-dot-circle"></i></td>' : '<td style="color:red">Offline</td>'}
+            <td class="cpu">${stat.cpu}%</td>
+            <td class="ram">${stat.ram}%</td>
+            <td class="disk">${stat.disk}%</td>
+            <td><a href="/groups/remove/${stat.group_id}/${stat.agent_id}"><i class="fa fa-trash trash" aria-hidden="true" ></i></a></td>
+            `;
+
+            if (parseFloat(stat.cpu) > 80) row.querySelector('.cpu').classList.add('high'); else row.querySelector('.cpu').classList.add('nomal');
+            if (parseFloat(stat.ram) > 80) row.querySelector('.ram').classList.add('high'); else row.querySelector('.ram').classList.add('nomal');
+            if (parseFloat(stat.disk) > 90) row.querySelector('.disk').classList.add('high'); else row.querySelector('.disk').classList.add('nomal');
+
+            tbody.appendChild(row);
+            }
+        });
+        if (total > 1) {
+            document.getElementById("hosts").innerHTML = total + " hosts";
+        } else if (total == 0) {
+            document.getElementById("nohost").innerHTML = "No host";
+        } else {
+            document.getElementById("hosts").innerHTML = total + " host";
+        }
+        
+    }
+
+    function fetchStats() {
+      fetch(`/api/agents`)
+        .then(res => res.json())
+        .then(updateStats)
+        .catch(err => console.error('Lỗi khi lấy dữ liệu:', err));
+    }
+    function fetchStats2() {
+      fetch(`/api/agents`)
+        .then(res => res.json())
+        .then(updateStats2)
+        .catch(err => console.error('Lỗi khi lấy dữ liệu:', err));
+    }
+
+    fetchStats(); // Gọi lần đầu
+    fetchStats2();
+    setInterval(fetchStats, 5000); // Cập nhật mỗi 10 giây
+    setInterval(fetchStats2, 5000);
+  </script>
+{% endblock %}
+
