@@ -16,4 +16,4 @@ Hệ thống giám sát tài nguyên hệ thống máy tính được xây dựn
 ```bash
 git clone https://github.com/pwtarbe204/monitor_system_cusc_2025.git
 cd monitor_system_cusc_2025
-pip install -r requirements.txt
+docker compose up --build
