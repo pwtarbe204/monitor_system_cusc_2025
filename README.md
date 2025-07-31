@@ -66,19 +66,23 @@ Giải nén file zip vừa tải ta sẽ được như thế này:
 
 ### 🚀 Cấu hình startup cùng máy tính
 
-Bước 1: Vào mục tìm kiếm tìm ```Task scheduler```
+Bước 1: Chỉnh file ```RunBabbix.bat``` sửa lại đường dẫn tới thư mục chưa file exe
+
+![](images/19.png)
+
+Bước 2: Vào mục tìm kiếm tìm ```Task scheduler```
 
 ![](images/11.png)
 
-Bước 2: Chọn Create task
+Bước 3: Chọn Create task
 
 ![](images/12.png)
 
-Bước 3: Đặt tên cho Task và tick chọn ```Run with highest privileges```
+Bước 4: Đặt tên cho Task và tick chọn ```Run with highest privileges```
 
 ![](images/13.png)
 
-Bước 4: Tạo 2 triggers ```At log on``` với ```At startup```
+Bước 5: Tạo 2 triggers ```At log on``` với ```At startup```
 
 ![](images/14.png)
 
@@ -86,7 +90,7 @@ Bước 4: Tạo 2 triggers ```At log on``` với ```At startup```
 
 ![](images/16.png)
 
-Bước 5: Tạo action
+Bước 6: Tạo action
 
 ![](images/17.png)
 
@@ -94,4 +98,4 @@ Bước 5: Tạo action
 
 ![](images/18.png)
 
-Bước 6: Nhấn Ok và thoát ra, giờ thì File sẽ chạy cùng với máy tính khi bật máy lên.
+Bước 7: Nhấn Ok và thoát ra, giờ thì File sẽ chạy cùng với máy tính khi bật máy lên.
