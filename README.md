@@ -12,10 +12,15 @@ Hệ thống giám sát tài nguyên hệ thống máy tính được xây dựn
 - pip (Python package manager)
 - Git (nếu clone từ repo)
 
-### Cài đặt:
+### Tải hệ thống về
 ```bash
 git clone https://github.com/pwtarbe204/monitor_system_cusc_2025.git
+```
+### Cấu hình mật khẩu Cơ sở dữ liệu
+Trong thư mục system có file 
+```
 cd monitor_system_cusc_2025
+cd system
 docker compose up --build
 ```
 ### Hướng dẫn cấu hình
