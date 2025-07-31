@@ -78,7 +78,7 @@ Bước 3: Đặt tên cho Task và tick chọn ```Run with highest privileges``
 
 ![](images/13.png)
 
-Bước 4: Tạo 2 triggers ```At on log``` với ```At startup```
+Bước 4: Tạo 2 triggers ```At log on``` với ```At startup```
 
 ![](images/14.png)
 
@@ -90,6 +90,8 @@ Bước 5: Tạo action
 
 ![](images/17.png)
 
-Đưa đường dẫn đến file exe của agent
+Đưa đường dẫn đến file .bat của thư mục agent vừa tải
 
 ![](images/18.png)
+
+Bước 6: Nhấn Ok và thoát ra, giờ thì File sẽ chạy cùng với máy tính khi bật máy lên.
