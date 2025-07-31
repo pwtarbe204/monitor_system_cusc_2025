@@ -60,3 +60,6 @@ Truy cập vào phần setting nhấn vào nút 3 gach và chọn ```Download Ag
 
 ![](images/8.png)
 
+Giải nén file zip vừa tải ta sẽ được như thế này:
+
+![](images/10.png)
