@@ -23,9 +23,10 @@ cd system
 ```
 Trong thư mục ```system``` có file ```docker-compose.yml```, tại đây hãy đặt mật khẩu cho cơ sở dữ liệu và nhớ nó.
 ![Cấu hình docker compose](images/2.png)
-# Build image, tạo và chạy các container:
+
+Build image, tạo và chạy các container:
 ```
 docker compose up --build
 ```
 ### Hướng dẫn cấu hình
-![Đường dẫn vào hệ thống](images/1.png)
+![Đường dẫn vào hệ thống](images/1.png)!
