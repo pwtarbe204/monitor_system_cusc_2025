@@ -66,11 +66,19 @@ Giải nén file zip vừa tải ta sẽ được như thế này:
 
 ### 🚀 Cấu hình startup cùng máy tính
 
+Bước 1: Vào mục tìm kiếm tìm ```Task scheduler```
+
 ![](images/11.png)
+
+Bước 2: Chọn Create task
 
 ![](images/12.png)
 
+Bước 3: Đặt tên cho Task và tick chọn ```Run with highest privileges```
+
 ![](images/13.png)
+
+Bước 4: Tạo 2 triggers ```At on log``` với ```At startup```
 
 ![](images/14.png)
 
@@ -78,6 +86,10 @@ Giải nén file zip vừa tải ta sẽ được như thế này:
 
 ![](images/16.png)
 
+Bước 5: Tạo action
+
 ![](images/17.png)
+
+Đưa đường dẫn đến file exe của agent
 
 ![](images/18.png)
