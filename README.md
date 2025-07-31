@@ -17,7 +17,7 @@ Hệ thống giám sát tài nguyên hệ thống máy tính được xây dựn
 git clone https://github.com/pwtarbe204/monitor_system_cusc_2025.git
 ```
 ### Cấu hình mật khẩu Cơ sở dữ liệu
-Trong thư mục system có file ```docker-compose.yml```
+Trong thư mục ```system``` có file ```docker-compose.yml```, tại đây hãy đặt mật khẩu cho cơ sở dữ liệu và nhớ nó.
 ![Cấu hình docker compose](images/2.png)
 ```
 cd monitor_system_cusc_2025
