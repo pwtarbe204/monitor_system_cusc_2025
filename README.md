@@ -12,6 +12,10 @@ Hệ thống giám sát tài nguyên hệ thống máy tính được xây dựn
 - pip (Python package manager)
 - Git (nếu clone từ repo)
 
+### Sơ đồ triển khai
+
+![](images/9.png)
+
 ### Tải hệ thống về
 ```bash
 git clone https://github.com/pwtarbe204/monitor_system_cusc_2025.git
