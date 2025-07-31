@@ -23,6 +23,7 @@ WORKDIR /app
 COPY app /app
 COPY app/config /app/config
 COPY app/routes /app/routes
+COPY app/downloads /app/downloads
 
 RUN touch .env
 
