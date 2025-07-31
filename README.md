@@ -19,4 +19,4 @@ cd monitor_system_cusc_2025
 docker compose up --build
 ```
 ###
-![Mô tả ảnh](images/logo.png)
+![Mô tả ảnh](images/1.png)
