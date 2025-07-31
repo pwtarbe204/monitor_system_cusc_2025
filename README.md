@@ -49,3 +49,10 @@ Bước 4: Đăng nhập vào hệ thống
 Bước 5:
 
 ![](images/7.png)
+
+## 🚀 Cách chạy Agent
+
+Truy cập vào phần setting nhấn vào nút 3 gach và chọn ```Download Agent```:
+
+![](images/8.png)
+
