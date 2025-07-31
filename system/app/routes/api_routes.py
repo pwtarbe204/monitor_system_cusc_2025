@@ -44,7 +44,7 @@ def getGroups():
 
 THRESHOLDS = {
     "cpu": 85,   
-    "ram": 50,
+    "ram": 80,
     "disk": 90
 }
 @api_bp.route('/sysinfo', methods=['POST', 'GET'])
