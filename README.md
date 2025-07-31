@@ -29,4 +29,19 @@ Build image, tạo và chạy các container:
 docker compose up --build
 ```
 ### Hướng dẫn cấu hình
-![Đường dẫn vào hệ thống](images/1.png)!
+
+Bước 1: Truy cập ```localhost:9001```
+
+![Đường dẫn vào hệ thống](images/1.png)
+
+Bước 2: Set up cơ sở dữ liệu
+
+![Đường dẫn vào hệ thống](images/4.png)
+
+Bước 3: Đăng kí tài khoản
+
+![Đường dẫn vào hệ thống](images/5.png)
+
+Bước 4: Đăng nhập vào hệ thống
+
+![Đường dẫn vào hệ thống](images/6.png)
