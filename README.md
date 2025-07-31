@@ -18,5 +18,5 @@ git clone https://github.com/pwtarbe204/monitor_system_cusc_2025.git
 cd monitor_system_cusc_2025
 docker compose up --build
 ```
-###
-![Mô tả ảnh](images/1.png)
+### Hướng dẫn cấu hình
+![Đường dẫn vào hệ thống](images/1.png)
