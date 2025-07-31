@@ -42,7 +42,6 @@ def check_local():
 
 
 @checker_bp.route("/check", methods=["POST"])
-@login_required
 def check():
     data = request.get_json()
     url_check = data.get("urls", [])
