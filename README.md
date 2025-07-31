@@ -36,12 +36,16 @@ Bước 1: Truy cập ```localhost:9001```
 
 Bước 2: Set up cơ sở dữ liệu
 
-![Đường dẫn vào hệ thống](images/4.png)
+![](images/4.png)
 
 Bước 3: Đăng kí tài khoản
 
-![Đường dẫn vào hệ thống](images/5.png)
+![](images/5.png)
 
 Bước 4: Đăng nhập vào hệ thống
 
-![Đường dẫn vào hệ thống](images/6.png)
+![](images/6.png)
+
+Bước 5:
+
+![](images/7.png)
