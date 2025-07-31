@@ -63,3 +63,21 @@ Truy cập vào phần setting nhấn vào nút 3 gach và chọn ```Download Ag
 Giải nén file zip vừa tải ta sẽ được như thế này:
 
 ![](images/10.png)
+
+### 🚀 Cấu hình startup cùng máy tính
+
+![](images/11.png)
+
+![](images/12.png)
+
+![](images/13.png)
+
+![](images/14.png)
+
+![](images/15.png)
+
+![](images/16.png)
+
+![](images/17.png)
+
+![](images/18.png)
